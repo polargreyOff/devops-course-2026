@@ -50,7 +50,10 @@ if [[ -n "${DRY_RUN}" ]]; then
 fi
 
 # Проверка сайта
-curl -f --cacert "${CA_CERT}" "${SITE_URL}" > /dev/null
+if ! curl -f --cacert "${CA_CERT}" "${SITE_URL}" > /dev/null; then
+    echo "Error: site is unavailable" >&2
+    exit 1
+fi
 
 # Хеш доставленного коммита
 echo "Deployed commit: $(git rev-parse --short HEAD)"
