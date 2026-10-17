@@ -35,4 +35,4 @@ def index():
     finally:
         conn.close()
 
-    return f"Hello from Docker! Visits: {count}\n"
+    return f"Hello from Docker, Карцев! Visits: {count}\n"
