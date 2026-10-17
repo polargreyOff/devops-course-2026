@@ -83,4 +83,25 @@ check "Права приватного ключа TLS" "600" \
 
 echo "Пройдено: $PASS, не пройдено: $FAIL"
 
+echo "[5] Контейнеризация"
+
+check "Docker активен" "active" \
+    "$(systemctl is-active docker)"
+
+DB_STATUS="$(docker inspect -f '{{.State.Health.Status}}' app-db-1 2>/dev/null)"
+
+check "PostgreSQL healthy" "healthy" "$DB_STATUS"
+
+UNSAFE_PORTS="$(sudo ss -H -tln | awk '
+    $4 ~ /:(5000|5432)$/ &&
+    $4 !~ /^127\.0\.0\.1:/ {
+        print $4
+    }
+')"
+
+check "Порты 5000 и 5432 не открыты наружу" "" "$UNSAFE_PORTS"
+
+check "Права файла .env" "600" \
+    "$(stat -c '%a' /home/devops/app/.env 2>/dev/null)"
+
 [[ $FAIL -eq 0 ]] && exit 0 || exit 1   
