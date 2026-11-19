@@ -1,0 +1,6 @@
+---
+app_image: "ghcr.io/polargreyoff/devops-ci-app"
+app_tag: "eb3429cadc4909b2c930f102348c8c1c61bcdaff"
+app_container_name: "devops-ci-app"
+app_host_port: 5000
+app_internal_port: 5000

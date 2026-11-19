@@ -104,4 +104,45 @@ check "Порты 5000 и 5432 не открыты наружу" "" "$UNSAFE_POR
 check "Права файла .env" "600" \
     "$(stat -c '%a' /home/devops/app/.env 2>/dev/null)"
 
+echo "[6] Контрольная работа № 2"
+
+# 1. Проверка Redis
+REDIS_ID="$(docker compose --project-directory /home/devops/kr2 ps -q redis 2>/dev/null)"
+
+if [[ -n "$REDIS_ID" ]]; then
+    REDIS_STATUS="$(docker inspect -f '{{.State.Health.Status}}' "$REDIS_ID" 2>/dev/null)"
+else
+    REDIS_STATUS=""
+fi
+
+check "Redis KR2 healthy" "healthy" "$REDIS_STATUS"
+
+
+# 2. Проверка публикации порта Flask
+APP_PORT="$(docker compose --project-directory /home/devops/kr2 port app 8003 2>/dev/null)"
+
+check "KR2 доступен только на localhost" "127.0.0.1:8003" "$APP_PORT"
+
+
+# 3. Права файла .env
+check "Права KR2 .env" "600" \
+    "$(stat -c '%a' /home/devops/kr2/.env 2>/dev/null)"
+
+
+# 4. Сертификат действителен минимум 30 дней
+if openssl x509 -checkend 2592000 \
+    -noout -in /etc/ssl/certs/kr2.crt >/dev/null 2>&1; then
+    check "Сертификат KR2 действителен ещё 30 дней" "ok" "ok"
+else
+    check "Сертификат KR2 действителен ещё 30 дней" "ok" "fail"
+fi
+
+
+# 5. Сайт активирован в Nginx
+if [[ -L /etc/nginx/sites-enabled/kr2 && -e /etc/nginx/sites-enabled/kr2 ]]; then
+    check "Сайт KR2 активирован в Nginx" "yes" "yes"
+else
+    check "Сайт KR2 активирован в Nginx" "yes" "no"
+fi
+
 [[ $FAIL -eq 0 ]] && exit 0 || exit 1   
